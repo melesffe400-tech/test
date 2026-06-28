@@ -57,11 +57,13 @@
   .deco-dots{ display:flex; gap:6px; margin-top:6px; }
   .deco-dots span{ width:11px; height:11px; border-radius:50%; background:var(--gray-light); }
 
-  .main-grid{ display:grid; grid-template-columns: 1fr 1fr 2.6fr; gap:22px; align-items:start; }
+  .main-grid{ display:flex; align-items:stretch; gap:22px; }
+  .photo-card{ flex:1 1 0%; min-width:0; display:flex; flex-direction:column; }
+  .profile-col{ flex:2.6 1 0%; min-width:0; }
 
   /* ---------- 사진 카드 (PAIR) ---------- */
   .photo-card{ border-radius:10px; overflow:hidden; background:var(--gray-light); }
-  .photo-box{ position:relative; aspect-ratio: 4 / 5; width:100%; background:var(--gray-light); background-size:cover; background-position:center;
+  .photo-box{ position:relative; flex:1 1 auto; min-height:200px; background:var(--gray-light); background-size:cover; background-position:center;
     cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .photo-box input[type=file]{ display:none; }
   .photo-placeholder{ font-size:13px; color:#a9a7a1; text-align:center; padding:10px; }
@@ -116,7 +118,10 @@
   .exporting .no-export{ display:none !important; }
 
   @media (max-width:980px){
-    .main-grid{ grid-template-columns:1fr; }
+    .main-grid{ flex-direction:column; }
+    .photo-card{ flex:none; }
+    .profile-col{ flex:none; }
+    .photo-box{ aspect-ratio: 4/5; flex:none; }
     .sheet-body{ padding:30px 22px; }
     .app-header{ padding:16px 20px; }
   }
@@ -139,7 +144,7 @@
 
   <div class="app-header">
     <div class="brand">
-      <div class="icon">💬</div>
+      <div class="icon">▶</div>
       <div class="name" contenteditable="true">MAINT TWEET</div>
     </div>
     <div class="header-right">
