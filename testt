@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메인트윗 자기소개표 에디터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page-bg:#e9e6e0;
+    --header-bg:#e8e7e4;
+    --body-bg:#ffffff;
+    --gray-light:#dcdbd8;
+    --gray-mid:#9c9a95;
+    --gray-text:#6f6d68;
+    --ink:#3a3936;
+    --pink:#f3a3a3;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Noto Sans KR', sans-serif; background:var(--page-bg); color:var(--ink); }
+
+  /* ---------- 툴바 ---------- */
+  .toolbar{ position:sticky; top:0; z-index:50; background:var(--ink); color:#fff; padding:14px 20px;
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  .toolbar h1{ font-size:16px; margin:0; font-weight:700; }
+  .toolbar .hint{ width:100%; font-size:12px; color:#cfcac0; margin:4px 0 0; }
+  .toolbar-buttons{ display:flex; gap:8px; flex-wrap:wrap; }
+  .toolbar button{ border:1px solid #fff; background:transparent; color:#fff; padding:8px 14px; border-radius:6px;
+    font-size:13px; cursor:pointer; font-family:inherit; transition:.15s; }
+  .toolbar button:hover{ background:#fff; color:var(--ink); }
+  .toolbar button.primary{ background:#fff; color:var(--ink); font-weight:700; }
+  .toolbar button.primary:hover{ background:#e4d9b0; border-color:#e4d9b0; }
+
+  .wrap{ padding:32px 16px 60px; display:flex; justify-content:center; }
+
+  /* ---------- 시트 ---------- */
+  #sheet{ width:1480px; max-width:100%; background:var(--body-bg); border-radius:6px; overflow:hidden;
+    box-shadow:0 2px 18px rgba(0,0,0,.08); }
+
+  .app-header{ background:var(--header-bg); padding:20px 36px; display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand .icon{ width:38px; height:38px; border-radius:50%; background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .brand .name{ font-size:24px; font-weight:900; letter-spacing:1px; color:var(--gray-text); }
+  .header-right{ display:flex; align-items:center; gap:18px; }
+  .header-right .info{ font-size:14px; font-weight:700; color:var(--gray-text); letter-spacing:1px; }
+  .header-right .menu-dots{ width:34px; height:34px; border-radius:50%; background:#d8d6d2; color:#8a877f;
+    display:flex; align-items:center; justify-content:center; font-size:14px; }
+
+  .sheet-body{ padding:46px 48px 30px; }
+
+  .pair-head-row{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
+  .pair-title{ display:flex; align-items:center; gap:10px; font-size:20px; font-weight:900; color:var(--ink); margin-bottom:8px; }
+  .pair-title .bar{ width:5px; height:20px; background:var(--ink); display:inline-block; }
+  .pair-desc{ font-size:13px; color:var(--gray-mid); padding-left:15px; }
+  .deco-dots{ display:flex; gap:6px; margin-top:6px; }
+  .deco-dots span{ width:11px; height:11px; border-radius:50%; background:var(--gray-light); }
+
+  .main-grid{ display:grid; grid-template-columns: 1fr 1fr 2.6fr; gap:22px; align-items:start; }
+
+  /* ---------- 사진 카드 (PAIR) ---------- */
+  .photo-card{ border-radius:10px; overflow:hidden; background:var(--gray-light); }
+  .photo-box{ position:relative; aspect-ratio: 4 / 5; width:100%; background:var(--gray-light); background-size:cover; background-position:center;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .photo-box input[type=file]{ display:none; }
+  .photo-placeholder{ font-size:13px; color:#a9a7a1; text-align:center; padding:10px; }
+  .photo-box.has-photo .photo-placeholder{ display:none; }
+  .photo-bottom{ background:#ececea; padding:14px 16px; display:flex; align-items:center; gap:10px; }
+  .photo-bottom .heart{ width:30px; height:30px; min-width:30px; border-radius:50%; background:#fff; color:var(--ink);
+    display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .photo-bottom .pname{ font-size:16px; font-weight:800; color:var(--ink); flex:1; }
+  .photo-bottom .pname-extra{ text-align:right; font-size:11px; color:var(--gray-mid); line-height:1.5; }
+  [contenteditable="true"]{ outline:none; cursor:text; }
+  [contenteditable="true"]:hover{ background:rgba(228,217,176,.35); }
+  [contenteditable="true"]:focus{ background:rgba(228,217,176,.55); }
+
+  /* ---------- 프로필 컬럼 ---------- */
+  .profile-col{ position:relative; }
+  .profile-top{ display:flex; align-items:flex-start; gap:18px; margin-bottom:18px; position:relative; }
+  .avatar-box{ width:120px; height:120px; min-width:120px; border-radius:50%; background:var(--gray-light);
+    cursor:pointer; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center;
+    text-align:center; font-size:11px; color:#a9a7a1; }
+  .avatar-box input[type=file]{ display:none; }
+  .avatar-box.has-photo .avatar-placeholder{ display:none; }
+  .profile-text{ flex:1; padding-top:4px; }
+  .display-name{ font-size:26px; font-weight:900; color:var(--ink); }
+  .handle{ font-size:14px; color:var(--gray-mid); margin-bottom:14px; }
+  .tags{ display:flex; gap:10px; flex-wrap:wrap; }
+  .tag{ display:flex; align-items:center; gap:7px; border:1.5px solid #d6d4cf; border-radius:30px; padding:7px 14px; font-size:12px; color:var(--gray-text); }
+  .tag .dot{ width:9px; height:9px; border-radius:50%; background:var(--gray-light); }
+
+  .chevron-toggle{ position:absolute; top:0; right:0; width:30px; height:30px; border:none; background:none; cursor:pointer;
+    font-size:20px; color:var(--gray-mid); font-family:inherit; }
+
+  .collapsible.collapsed{ display:none; }
+
+  .notice-box{ background:#f1f0ee; border-radius:14px; padding:24px 26px; margin-bottom:16px; }
+  .notice-head{ display:flex; align-items:center; gap:10px; font-size:16px; font-weight:900; color:var(--ink); margin-bottom:14px; }
+  .notice-head .bar{ width:4px; height:16px; background:var(--ink); display:inline-block; }
+  .notice-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
+  .notice-line{ position:relative; padding-left:16px; padding-right:22px; font-size:13px; color:var(--gray-text); line-height:1.5; }
+  .notice-line::before{ content:"-"; position:absolute; left:0; top:0; color:var(--gray-mid); }
+  .notice-line > span[contenteditable]{ display:block; width:100%; }
+  .notice-line .del-line{ position:absolute; right:0; top:0; cursor:pointer; color:#c2bfb8; font-size:13px; line-height:1; padding:0 2px; }
+  .add-line-btn{ margin-top:14px; padding:6px 12px; font-size:12px; border:1px dashed var(--gray-mid); background:none;
+    cursor:pointer; border-radius:6px; color:var(--gray-text); font-family:inherit; }
+
+  .ng-badge{ display:inline-flex; align-items:center; gap:6px; background:var(--pink); color:#fff; font-weight:800;
+    font-size:13px; padding:6px 16px; border-radius:30px; margin-bottom:10px; }
+  .ng-text{ font-size:13px; color:var(--gray-text); line-height:1.7; }
+
+  .footer-credit{ text-align:center; font-size:11.5px; color:var(--gray-mid); padding:34px 0 6px; }
+  .footer-credit span{ margin:0 4px; }
+
+  .exporting .no-export{ display:none !important; }
+
+  @media (max-width:980px){
+    .main-grid{ grid-template-columns:1fr; }
+    .sheet-body{ padding:30px 22px; }
+    .app-header{ padding:16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>📝 메인트윗 자기소개표 에디터</h1>
+  <div class="toolbar-buttons">
+    <button id="saveBtn">임시저장</button>
+    <button id="loadBtn">불러오기</button>
+    <button id="downloadBtn" class="primary">이미지로 저장</button>
+  </div>
+  <p class="hint">텍스트를 클릭하면 바로 수정되고, 회색 사진 칸을 누르면 이미지를 올릴 수 있어요. 다 채운 뒤 "이미지로 저장"을 누르면 PNG로 다운로드됩니다.</p>
+</div>
+
+<div class="wrap">
+<div id="sheet">
+
+  <div class="app-header">
+    <div class="brand">
+      <div class="icon">💬</div>
+      <div class="name" contenteditable="true">MAINT TWEET</div>
+    </div>
+    <div class="header-right">
+      <div class="info" contenteditable="true">INFO</div>
+      <div class="menu-dots">•••</div>
+    </div>
+  </div>
+
+  <div class="sheet-body">
+
+    <div class="pair-head-row">
+      <div>
+        <div class="pair-title"><span class="bar"></span><span contenteditable="true">PAIR</span></div>
+        <div class="pair-desc" contenteditable="true">페어에 대한 설명을 한 줄 정도 간단하게 적어주면 좋을 듯!</div>
+      </div>
+      <div class="deco-dots"><span></span><span></span></div>
+    </div>
+
+    <div class="main-grid">
+
+      <!-- 캐릭터 A -->
+      <div class="photo-card">
+        <div class="photo-box">
+          <input type="file" accept="image/*">
+          <div class="photo-placeholder">＋ 사진 업로드</div>
+        </div>
+        <div class="photo-bottom">
+          <span class="heart">♥</span>
+          <span class="pname" contenteditable="true">NAME</span>
+          <div class="pname-extra">
+            <div contenteditable="true">NAME</div>
+            <div contenteditable="true">NAME</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 캐릭터 B -->
+      <div class="photo-card">
+        <div class="photo-box">
+          <input type="file" accept="image/*">
+          <div class="photo-placeholder">＋ 사진 업로드</div>
+        </div>
+        <div class="photo-bottom">
+          <span class="heart">♥</span>
+          <span class="pname" contenteditable="true">NAME</span>
+          <div class="pname-extra">
+            <div contenteditable="true">NAME</div>
+            <div contenteditable="true">NAME</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프로필 / NOTICE / NG -->
+      <div class="profile-col">
+        <div class="profile-top">
+          <div class="avatar-box">
+            <input type="file" accept="image/*">
+            <div class="avatar-placeholder">＋ 프로필</div>
+          </div>
+          <div class="profile-text">
+            <div class="display-name" contenteditable="true">이름</div>
+            <div class="handle" contenteditable="true">@아이디</div>
+            <div class="tags">
+              <span class="tag"><span class="dot"></span><span contenteditable="true">나이 등</span></span>
+              <span class="tag"><span class="dot"></span><span contenteditable="true">기타 성향</span></span>
+              <span class="tag"><span class="dot"></span><span contenteditable="true">자유기재란</span></span>
+            </div>
+          </div>
+          <button class="chevron-toggle no-export" id="chevronToggle">⌄</button>
+        </div>
+
+        <div class="collapsible" id="collapsible">
+          <div class="notice-box">
+            <div class="notice-head"><span class="bar"></span>NOTICE</div>
+            <ul class="notice-list" id="noticeList">
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+              <li class="notice-line"><span contenteditable="true">자유롭게 내용을 기재할 수 있어요! 기본 6줄! 편하게 늘리고 줄여서 써주세요 :D</span><span class="del-line no-export">×</span></li>
+            </ul>
+            <button class="add-line-btn no-export" id="addNoticeBtn">+ 줄 추가</button>
+          </div>
+
+          <div class="ng-badge">⚠ NG</div>
+          <div class="ng-text" contenteditable="true">간단하게 1~2줄 정도 상세 NG 사항을 적어주시면 좋을 것 같아요!<br>NG가 많다면 위에 칸을 조정해서 편하게 늘려주시길</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-credit">
+      <span contenteditable="true">© 커미션주 기재</span> | <span contenteditable="true">DESIGNED BY @mel</span>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  const sheet = document.getElementById('sheet');
+
+  // ---- 사진 / 프로필 업로드 ----
+  document.querySelectorAll('.photo-box, .avatar-box').forEach(box=>{
+    const input = box.querySelector('input[type=file]');
+    box.addEventListener('click', ()=> input.click());
+    input.addEventListener('change', ()=>{
+      const file = input.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        box.style.backgroundImage = `url(${ev.target.result})`;
+        box.dataset.img = ev.target.result;
+        box.classList.add('has-photo');
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // ---- NOTICE 줄 추가 / 삭제 ----
+  const noticeList = document.getElementById('noticeList');
+  document.getElementById('addNoticeBtn').addEventListener('click', ()=>{
+    const li = document.createElement('li');
+    li.className = 'notice-line';
+    li.innerHTML = `<span contenteditable="true">자유롭게 내용을 기재할 수 있어요!</span><span class="del-line no-export">×</span>`;
+    noticeList.appendChild(li);
+    bindDelete(li.querySelector('.del-line'));
+  });
+  function bindDelete(btn){
+    btn.addEventListener('click', ()=> btn.closest('.notice-line').remove());
+  }
+  document.querySelectorAll('.del-line').forEach(bindDelete);
+
+  // ---- Show/Hide 토글 ----
+  const chevronToggle = document.getElementById('chevronToggle');
+  const collapsible = document.getElementById('collapsible');
+  chevronToggle.addEventListener('click', ()=>{
+    const collapsed = collapsible.classList.toggle('collapsed');
+    chevronToggle.textContent = collapsed ? '›' : '⌄';
+  });
+
+  // ---- 임시저장 / 불러오기 ----
+  function getEditables(){ return Array.from(sheet.querySelectorAll('[contenteditable="true"]')); }
+  function getImgBoxes(){ return Array.from(sheet.querySelectorAll('.photo-box, .avatar-box')); }
+
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    const data = {
+      editables: getEditables().map(el=>el.innerHTML),
+      images: getImgBoxes().map(b=>b.dataset.img || null),
+      noticeCount: noticeList.children.length
+    };
+    try{
+      localStorage.setItem('maint_tweet_data', JSON.stringify(data));
+      alert('임시저장 완료! (이 브라우저에만 저장됩니다)');
+    }catch(e){
+      alert('저장에 실패했어요. 사진 용량이 너무 클 수 있어요.');
+    }
+  });
+
+  document.getElementById('loadBtn').addEventListener('click', ()=>{
+    const raw = localStorage.getItem('maint_tweet_data');
+    if(!raw){ alert('저장된 내용이 없습니다.'); return; }
+    const data = JSON.parse(raw);
+    getEditables().forEach((el,i)=>{ if(data.editables[i] !== undefined) el.innerHTML = data.editables[i]; });
+    getImgBoxes().forEach((b,i)=>{
+      const img = data.images[i];
+      if(img){ b.style.backgroundImage = `url(${img})`; b.dataset.img = img; b.classList.add('has-photo'); }
+    });
+    alert('불러오기 완료! (추가했던 NOTICE 줄은 복원되지 않을 수 있어요)');
+  });
+
+  // ---- 이미지로 저장 ----
+  document.getElementById('downloadBtn').addEventListener('click', ()=>{
+    const btn = document.getElementById('downloadBtn');
+    btn.disabled = true;
+    btn.textContent = '이미지 생성 중...';
+    sheet.classList.add('exporting');
+    html2canvas(sheet, { scale:2, backgroundColor:'#ffffff', useCORS:true }).then(canvas=>{
+      sheet.classList.remove('exporting');
+      const link = document.createElement('a');
+      link.download = '메인트윗_자기소개표.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.disabled = false;
+      btn.textContent = '이미지로 저장';
+    }).catch(()=>{
+      sheet.classList.remove('exporting');
+      btn.disabled = false;
+      btn.textContent = '이미지로 저장';
+      alert('이미지 생성 중 문제가 발생했어요. 다시 시도해주세요.');
+    });
+  });
+</script>
+
+</body>
+</html>
